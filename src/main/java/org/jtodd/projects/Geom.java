@@ -8,7 +8,12 @@ public class Geom {
     public static double vectorAngle(Line2D v1, Line2D v2) {
         Point2D tv1 = translateVector(v1);
         Point2D tv2 = translateVector(v2);
-        return Math.atan2(crossProduct(tv1, tv2), dotProduct(tv1, tv2));
+        double angle = Math.atan2(crossProduct(tv1, tv2), dotProduct(tv1, tv2));
+        if (angle == -Math.PI) {
+            return Math.PI;
+        } else {
+            return angle;
+        }
     }
 
     public static Point2D translateVector(Line2D l) {

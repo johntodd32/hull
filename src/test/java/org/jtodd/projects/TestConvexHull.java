@@ -1,10 +1,13 @@
 package org.jtodd.projects;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -30,9 +33,30 @@ public class TestConvexHull {
         s.add(p2);
 
         Path2D expectedHull = new Path2D.Double();
-        expectedHull.moveTo(p1.getX(), p1.getY());
+        expectedHull.moveTo(p2.getX(), p2.getY());
+        expectedHull.lineTo(p1.getX(), p1.getY());
         expectedHull.lineTo(p2.getX(), p2.getY());
-        expectedHull.closePath();
+
+        Path2D foundHull = ConvexHull.calculate(s);
+        boolean passed = comparePaths(expectedHull, foundHull);
+        Assert.assertTrue(passed);
+    }
+
+    @Test
+    public void testCalculateHull() {
+        Set<Point2D> s = new HashSet<>();
+        s.add(new Point2D.Double(1, -1));
+        s.add(new Point2D.Double(1, 1));
+        s.add(new Point2D.Double(0.5, 0.5));
+        s.add(new Point2D.Double(0, 0));
+        s.add(new Point2D.Double(0.5, 0));
+
+        Path2D expectedHull = new Path2D.Double();
+        expectedHull.moveTo(1, -1);
+        expectedHull.lineTo(1, 1);
+        expectedHull.lineTo(0.5, 0.5);
+        expectedHull.lineTo(0, 0);
+        expectedHull.lineTo(1, -1);
 
         Path2D foundHull = ConvexHull.calculate(s);
         boolean passed = comparePaths(expectedHull, foundHull);
@@ -53,16 +77,16 @@ public class TestConvexHull {
             expectedType = pe.currentSegment(expectedCoords);
             foundType = pf.currentSegment(foundCoords);
             if ((pe.isDone() && !pf.isDone()) || (!pe.isDone() && pf.isDone())) {
-                System.out.printf("Areas have different lengths");
+                System.out.printf("Paths have different lengths");
                 passed = false;
             } else if (expectedType != foundType) {
-                System.err.println("Areas have sides of different types");
+                System.err.println("Paths have sides of different types");
                 passed = false;
             } else if (expectedCoords[0] != foundCoords[0]) {
-                System.err.printf("Areas have different coordinates: (%f,%f) != (%f,%f)\n", expectedCoords[0], expectedCoords[1], foundCoords[0], foundCoords[1]);
+                System.err.printf("Paths have a vertex with different coordinates: (%f,%f) != (%f,%f)\n", expectedCoords[0], expectedCoords[1], foundCoords[0], foundCoords[1]);
                 passed = false;
             } else if (expectedCoords[1] != foundCoords[1]) {
-                System.err.printf("Areas have different coordinates: (%f,%f) != (%f,%f)\n", expectedCoords[0], expectedCoords[1], foundCoords[0], foundCoords[1]);
+                System.err.printf("Paths have a vertex with different coordinates: (%f,%f) != (%f,%f)\n", expectedCoords[0], expectedCoords[1], foundCoords[0], foundCoords[1]);
                 passed = false;
             }
         }
@@ -99,5 +123,45 @@ public class TestConvexHull {
         s2.add(p3);
         s2.add(p4);
         Assert.assertArrayEquals(new Point2D [] {p1, p4, p2}, ConvexHull.findRightmost(s2).toArray());
+    }
+
+    @Test
+    public void testFindNextEdgeWithOneRightmostPoint() {
+        HashSet<Point2D> s = new HashSet<>();
+        ArrayList<Point2D> partialHull = new ArrayList<>();
+        Point2D p1 = new Point2D.Double(1, -1);
+        Point2D p2 = new Point2D.Double(1, 1);
+        Point2D p3 = new Point2D.Double(0, 0);
+        s.add(p1);
+        s.add(p2);
+        s.add(p3);
+        partialHull.add(p1);
+        partialHull.add(p2);
+        Line2D prevEdge = new Line2D.Double(p1, p2);
+
+        List<Point2D> nextVertexList = ConvexHull.findNextEdge(s, partialHull, 0, prevEdge, p1);
+        Assert.assertArrayEquals(new Point2D [] {p3}, nextVertexList.toArray());
+    }
+
+    @Test
+    public void testFindNextEdgeWithTwoRightmostPoints() {
+        HashSet<Point2D> s = new HashSet<>();
+        ArrayList<Point2D> partialHull = new ArrayList<>();
+        Point2D p1 = new Point2D.Double(1, -1);
+        Point2D p2 = new Point2D.Double(1, 1);
+        Point2D p3 = new Point2D.Double(0, 0);
+        Point2D p4 = new Point2D.Double(0.5, 0.5);
+        Point2D p5 = new Point2D.Double(0.5, 0);
+        s.add(p1);
+        s.add(p2);
+        s.add(p3);
+        s.add(p4);
+        s.add(p5);
+        partialHull.add(p1);
+        partialHull.add(p2);
+        Line2D prevEdge = new Line2D.Double(p1, p2);
+
+        List<Point2D> nextVertexList = ConvexHull.findNextEdge(s, partialHull, 0, prevEdge, p1);
+        Assert.assertArrayEquals(new Point2D [] {p4, p3}, nextVertexList.toArray());
     }
 }

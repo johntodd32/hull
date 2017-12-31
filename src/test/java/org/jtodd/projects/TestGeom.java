@@ -25,6 +25,13 @@ public class TestGeom {
         Assert.assertEquals("Expected an angle of 0.0 between a line and a point", 0, Geom.vectorAngle(v1, point), DELTA);
         Assert.assertEquals("Expected an angle of 0.0 between a point and a line", 0, Geom.vectorAngle(point, v1), DELTA);
         Assert.assertEquals("Expected an angle of 0.0 between two points", 0.0, Geom.vectorAngle(point, point), DELTA);
+
+        Line2D v5 = new Line2D.Double(1, -1, 1, 1);
+        Line2D v6 = new Line2D.Double(1, 1, 0, 0);
+        Line2D v7 = new Line2D.Double(1, 1, 0.5, 0);
+        Assert.assertEquals(3 * Math.PI / 4, Geom.vectorAngle(v5, v6), DELTA);
+        Assert.assertEquals(Math.PI - Math.acos(2.0 / Math.sqrt(5)), Geom.vectorAngle(v5, v7), DELTA);
+        Assert.assertTrue(Geom.vectorAngle(v5, v6) < Geom.vectorAngle(v5, v7));
     }
 
     @Test
